@@ -1,0 +1,32 @@
+name: Release
+
+# Publishes every Feature under src/ to ghcr.io/bigblueanalytics/devcontainer-features/<id>
+# when a vX.Y.Z tag is pushed. The OCI tags come from each devcontainer-feature.json
+# `version` (1, 1.0 and 1.0.0 for 1.0.0), so the git tag must name the same release.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: The tag matches the Feature version
+        run: |
+          version="$(jq -r .version src/dx/devcontainer-feature.json)"
+          [ "${GITHUB_REF_NAME}" = "v${version}" ] \
+            || { echo "Tag ${GITHUB_REF_NAME} but src/dx is at ${version}" >&2; exit 1; }
+
+      - uses: devcontainers/action@v1.4.4
+        with:
+          publish-features: "true"
+          base-path-to-features: ./src
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

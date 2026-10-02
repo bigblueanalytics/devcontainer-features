@@ -1,0 +1,100 @@
+{
+    "id": "dx",
+    "version": "1.0.0",
+    "name": "BBA developer experience",
+    "description": "The shell and CLI tooling every BBA devcontainer starts from: zsh with oh-my-zsh, the shell utilities, aws, gh, vault, kubectl, Claude Code and 1Password commit signing.",
+    "documentationURL": "https://github.com/bigblueanalytics/devcontainer-features/tree/main/src/dx",
+    "options": {
+        "username": {
+            "type": "string",
+            "default": "automatic",
+            "description": "User to set up. 'automatic' takes the remote user, else the uid 1000 user, else creates vscode."
+        },
+        "upgradePackages": {
+            "type": "boolean",
+            "default": false,
+            "description": "Upgrade the image's installed packages first."
+        },
+        "plugins": {
+            "type": "string",
+            "default": "colored-man-pages colorize git httpie pip zsh-interactive-cd fzf",
+            "description": "Default oh-my-zsh plugins; ZSH_PLUGINS overrides them at runtime."
+        },
+        "fzfVersion": {
+            "type": "string",
+            "default": "latest",
+            "description": "fzf release, or 'latest'. A pin must be 0.48 or later, so oh-my-zsh's fzf plugin can use `fzf --zsh`."
+        },
+        "aws": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install AWS CLI v2."
+        },
+        "gh": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install the GitHub CLI."
+        },
+        "vault": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install the HashiCorp Vault CLI."
+        },
+        "vaultVersion": {
+            "type": "string",
+            "default": "latest",
+            "description": "Vault release, or 'latest'."
+        },
+        "kubectl": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install kubectl."
+        },
+        "kubectlVersion": {
+            "type": "string",
+            "default": "latest",
+            "description": "kubectl release, or 'latest' for the current stable one."
+        },
+        "helm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Install Helm, latest release."
+        },
+        "claude": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install Claude Code with Anthropic's native installer, for the user being set up."
+        },
+        "claudeVersion": {
+            "type": "string",
+            "default": "latest",
+            "description": "Claude Code channel or release: 'latest', 'stable' or a version."
+        },
+        "opSshSign": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install 1Password's op-ssh-sign and repoint a host gitconfig at it, so commits sign inside the container."
+        }
+    },
+    "mounts": [
+        {
+            "source": "dx-commandhistory-${devcontainerId}",
+            "target": "/commandhistory",
+            "type": "volume"
+        }
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "anthropic.claude-code"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "redhat.telemetry.enabled": false
+            }
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+}
