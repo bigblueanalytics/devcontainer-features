@@ -1,0 +1,3 @@
+# install.sh writes, and the tests grep for, literal ${ZSH_PLUGINS:-...} and
+# ${ZSH_THEME:-...} text meant for ~/.zshrc, so single quotes that do not expand are the point.
+disable=SC2016
