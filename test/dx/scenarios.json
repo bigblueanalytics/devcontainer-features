@@ -13,5 +13,15 @@
                 "fzfVersion": "0.60.3"
             }
         }
+    },
+    "vault_login": {
+        "image": "debian:bookworm",
+        "features": {
+            "dx": {
+                "vaultLogin": "oidc",
+                "claude": false,
+                "aws": false
+            }
+        }
     }
 }

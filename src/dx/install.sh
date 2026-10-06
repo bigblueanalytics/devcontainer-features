@@ -25,6 +25,7 @@ INSTALL_HELM="${HELM:-false}"
 INSTALL_CLAUDE="${CLAUDE:-true}"
 CLAUDE_VERSION="${CLAUDEVERSION:-latest}"
 INSTALL_OP_SSH_SIGN="${OPSSHSIGN:-true}"
+VAULT_LOGIN="${VAULTLOGIN:-}"
 
 # devcontainers/features at the commit that added the ohMyZshTheme and sudoers options
 # (2.7.0). Fetched, not depended on: a Feature dependency would only run under the
@@ -42,6 +43,11 @@ fi
 
 if ! command -v apt-get > /dev/null; then
     echo "dx: only Debian and Ubuntu images are supported" >&2
+    exit 1
+fi
+
+if [ -n "$VAULT_LOGIN" ] && ! printf '%s' "$VAULT_LOGIN" | grep -qE '^[a-z0-9_-]+$'; then
+    echo "dx: vaultLogin must be a Vault auth method name such as oidc, got '$VAULT_LOGIN'" >&2
     exit 1
 fi
 
@@ -169,6 +175,22 @@ if [ "$INSTALL_OP_SSH_SIGN" = "true" ]; then
         | tar -xz -C /usr/local/bin --strip-components=1 --wildcards '*/op-ssh-sign'
 fi
 
+# Tools that open a browser (vault login -method=oidc, gh auth login, aws sso login) call
+# xdg-open, which a devcontainer lacks. VS Code's terminals export $BROWSER, a helper that
+# opens the URL on the host, so hand it over. Only when no real xdg-open is installed.
+if ! command -v xdg-open > /dev/null; then
+    cat > /usr/local/bin/xdg-open <<'EOF'
+#!/bin/sh
+# Installed by the dx devcontainer Feature: open URLs through the browser VS Code exposes.
+if [ -n "${BROWSER:-}" ]; then
+    exec "$BROWSER" "$@"
+fi
+echo "xdg-open: no browser available here (\$BROWSER is unset)" >&2
+exit 1
+EOF
+    chmod 755 /usr/local/bin/xdg-open
+fi
+
 # History lives in /commandhistory so a volume can keep it across rebuilds: the Feature
 # mounts one there, compose-backed devcontainers mount their own. Sticky and
 # world-writable like /tmp rather than owned by the user: the devcontainer CLI remaps the
@@ -211,6 +233,27 @@ if [ -e ~/.gitconfig ]; then
     if grep -q 'Applications/1Password.app' ~/.gitconfig; then
         sed -e 's:Applications/1Password.app/Contents/MacOS/op-ssh-sign:usr/local/bin/op-ssh-sign:' -i ~/.gitconfig
     fi
+fi
+EOF
+fi
+
+if [ -n "$VAULT_LOGIN" ]; then
+    cat >> "$SHELLRC" <<EOF
+
+# Log in to Vault from the first interactive terminal after the container starts, when
+# there is no valid token. Once per container start, so cancelling it is not repeated in
+# every new terminal; PID 1's start time changes on every start. Needs a terminal on both
+# ends, which keeps it out of VS Code's environment probe and of non-interactive shells.
+if [ -t 0 ] && [ -t 1 ] && [ -n "\${VAULT_ADDR:-}" ] && command -v vault > /dev/null; then
+    _dx_vault_marker="/tmp/.dx-vault-login-\$(id -u)-\$(cut -d' ' -f22 /proc/1/stat 2>/dev/null)"
+    if [ ! -e "\$_dx_vault_marker" ]; then
+        : > "\$_dx_vault_marker"
+        if ! vault token lookup > /dev/null 2>&1; then
+            echo "dx: no valid Vault token, logging in to \$VAULT_ADDR (Ctrl-C to skip)"
+            vault login -method=${VAULT_LOGIN}
+        fi
+    fi
+    unset _dx_vault_marker
 fi
 EOF
 fi
