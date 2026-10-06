@@ -25,6 +25,9 @@ check "plugins are overridable" grep -qF 'plugins=($( echo ${ZSH_PLUGINS:-' "$DX
 check "shellrc is sourced by zsh" grep -qF /usr/local/share/bba-dx/shellrc /etc/zsh/zshrc
 check "shellrc is sourced by bash" grep -qF /usr/local/share/bba-dx/shellrc /etc/bash.bashrc
 check "history is writable by the user" as_user 'touch /commandhistory/.zsh_history'
+# VS Code's shell integration sources ~/.zshrc from its own ZDOTDIR after resetting
+# HISTFILE to ~/.zsh_history; this reproduces that order.
+check "history survives VS Code's shell integration" as_user 'd=$(mktemp -d) && printf "HISTFILE=\$HOME/.zsh_history\n. \$HOME/.zshrc\n" > "$d/.zshrc" && [ "$(ZDOTDIR=$d zsh -ic "print \$HISTFILE" 2>/dev/null | tail -1)" = /commandhistory/.zsh_history ]'
 check "passwordless sudo" as_user 'sudo -n true'
 
 check "fd" fd --version

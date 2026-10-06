@@ -19,6 +19,7 @@ check "zsh is the login shell" bash -c 'getent passwd vscode | cut -d: -f7 | gre
 check "theme is codespaces by default" grep -qF 'ZSH_THEME=${ZSH_THEME:-codespaces}' ~/.zshrc
 check "passwordless sudo" sudo -n true
 check "history is writable" touch /commandhistory/.zsh_history
+check "history survives VS Code's shell integration" bash -c 'd=$(mktemp -d) && printf "HISTFILE=\$HOME/.zsh_history\n. \$HOME/.zshrc\n" > "$d/.zshrc" && [ "$(ZDOTDIR=$d zsh -ic "print \$HISTFILE" 2>/dev/null | tail -1)" = /commandhistory/.zsh_history ]'
 check "fd" fd --version
 check "ripgrep" rg --version
 check "fzf has --zsh" fzf --zsh
