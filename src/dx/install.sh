@@ -233,6 +233,13 @@ if [ -f "$ZSHRC" ] && grep -q '^plugins=' "$ZSHRC"; then
         -i "$ZSHRC"
 fi
 
+# The shellrc sets HISTFILE too, but VS Code's terminal shell integration runs after the
+# system rc files and resets HISTFILE to ~/.zsh_history before sourcing ~/.zshrc, so in a
+# VS Code terminal only a value set in ~/.zshrc survives.
+if [ -f "$ZSHRC" ] && ! grep -qF '/commandhistory/.zsh_history' "$ZSHRC"; then
+    printf '\n[ -w /commandhistory ] && HISTFILE=/commandhistory/.zsh_history\n' >> "$ZSHRC"
+fi
+
 if [ "$INSTALL_CLAUDE" = "true" ]; then
     # The native installer puts Claude Code in the user's home, so it runs as that user.
     # ~/.local/bin is on PATH through the shellrc above.
