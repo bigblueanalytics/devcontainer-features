@@ -41,6 +41,8 @@ check "vault" vault version
 check "kubectl" kubectl version --client
 check "helm is off by default" bash -c '! command -v helm'
 check "op-ssh-sign" test -x /usr/local/bin/op-ssh-sign
+check "xdg-open hands URLs to VS Code's \$BROWSER" bash -c 'BROWSER=echo xdg-open https://example.com | grep -qx https://example.com'
+check "no Vault auto-login unless vaultLogin is set" bash -c '! grep -q "vault login" /usr/local/share/bba-dx/shellrc'
 check "claude is on the user's PATH in zsh" as_user 'zsh -ic "claude --version"'
 
 reportResults

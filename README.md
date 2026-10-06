@@ -12,6 +12,7 @@ BBA devcontainer starts from, so a terminal looks and works the same in every re
 | CLIs | aws (v2), gh, vault, kubectl, helm (opt-in) |
 | Claude Code | Anthropic's native installer, in the user's `~/.local/bin` |
 | Git signing | 1Password's `op-ssh-sign`, plus a shell hook that repoints a macOS gitconfig at it |
+| Browser | an `xdg-open` that hands URLs to VS Code's `$BROWSER`, so `vault login -method=oidc`, `gh auth login` and `aws sso login` open the host's browser |
 | History | zsh history in `/commandhistory`, so a volume keeps it across rebuilds |
 | Defaults | `EDITOR=vim`, `LESS=-FRX`; plugins and theme overridable per developer through `ZSH_PLUGINS` / `ZSH_THEME` |
 
@@ -66,9 +67,19 @@ explicitly, since a Dockerfile build has no remote user to detect. Mount
 | `helm` | `false` | Helm, latest release |
 | `claude` / `claudeVersion` | `true` / `latest` | Claude Code: `latest`, `stable` or a version |
 | `opSshSign` | `true` | 1Password commit signing |
+| `vaultLogin` | (empty) | Vault auth method, e.g. `oidc`: the first terminal after the container starts runs `vault login` when `VAULT_ADDR` is set and there is no valid token |
 
 The Claude Code extension is added even with `claude: false`: Feature customizations
 cannot depend on options.
+
+### Vault tokens
+
+With `vaultLogin` set, the token is the container's own, in its `~/.vault-token`: nothing
+is mounted from the host, and the CLI, Terraform and applications find it at the default
+path. It is requested once per container start, from the first interactive terminal, only
+when there is no valid token; Ctrl-C skips it until the next start. It survives stopping
+the container and is gone after a rebuild. The repo sets `VAULT_ADDR` itself, in
+`containerEnv` or its compose file.
 
 ### Why not the upstream Features for each tool
 

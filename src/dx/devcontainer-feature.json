@@ -1,6 +1,6 @@
 {
     "id": "dx",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "name": "BBA developer experience",
     "description": "The shell and CLI tooling every BBA devcontainer starts from: zsh with oh-my-zsh, the shell utilities, aws, gh, vault, kubectl, Claude Code and 1Password commit signing.",
     "documentationURL": "https://github.com/bigblueanalytics/devcontainer-features/tree/main/src/dx",
@@ -74,6 +74,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install 1Password's op-ssh-sign and repoint a host gitconfig at it, so commits sign inside the container."
+        },
+        "vaultLogin": {
+            "type": "string",
+            "default": "",
+            "description": "Vault auth method to log in with from the first terminal after the container starts, when there is no valid token and VAULT_ADDR is set (e.g. 'oidc'). Empty: never."
         }
     },
     "mounts": [
