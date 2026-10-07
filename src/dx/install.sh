@@ -85,6 +85,12 @@ curl -fsSL "https://github.com/devcontainers/features/archive/${COMMON_UTILS_SHA
     | tar -xz -C /tmp/dx-common-utils --strip-components=3 "features-${COMMON_UTILS_SHA}/src/common-utils"
 sed -i -E '/^install_debian_packages\(\)/,/^}/{/^[[:space:]]+(bash-completion|bubblewrap|init-system-helpers)[[:space:]]+\\$/d}' \
     /tmp/dx-common-utils/main.sh
+# For a user that already exists, common-utils assumes a group named after it and fails
+# when there is none, as with an image whose user has root as its primary group. Use the
+# user's actual primary group; a user it creates still gets one named after it.
+sed -i 's/^group_name="${USERNAME}"$/group_name="$(id -gn "${USERNAME}" 2>\/dev\/null || echo "${USERNAME}")"/' \
+    /tmp/dx-common-utils/main.sh
+grep -qF 'group_name="$(id -gn' /tmp/dx-common-utils/main.sh
 USERNAME="$USERNAME" \
 INSTALLZSH=true \
 INSTALLOHMYZSH=true \
@@ -289,7 +295,13 @@ if [ "$INSTALL_CLAUDE" = "true" ]; then
     su "$USERNAME" -s /bin/bash -c "cd ~ && curl -fsSL https://claude.ai/install.sh | bash -s -- '${CLAUDE_VERSION}'"
 fi
 
-chown -R "$USERNAME:$USER_GROUP" "$USER_HOME"
+# sed -i above rewrote ~/.zshrc as root. It is the only file in the home this script
+# leaves to root: common-utils hands over what it creates, and Claude Code installs as
+# the user. A recursive chown of the home would also take over whatever the base image
+# keeps there under another owner, and copy each such file into this layer.
+if [ -f "$ZSHRC" ]; then
+    chown "$USERNAME:$USER_GROUP" "$ZSHRC"
+fi
 
 apt-get clean
 rm -rf /var/lib/apt/lists/*
