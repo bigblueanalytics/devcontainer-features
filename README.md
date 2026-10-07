@@ -67,7 +67,7 @@ explicitly, since a Dockerfile build has no remote user to detect. Mount
 | `helm` | `false` | Helm, latest release |
 | `claude` / `claudeVersion` | `true` / `latest` | Claude Code: `latest`, `stable` or a version |
 | `opSshSign` | `true` | 1Password commit signing |
-| `vaultLogin` | (empty) | Vault auth method, e.g. `oidc`: the first terminal after the container starts runs `vault login` when `VAULT_ADDR` is set and there is no valid token |
+| `vaultLogin` | (empty) | Vault auth method, e.g. `oidc`: the first terminal after the container starts runs `vault login`, without printing the token, when `VAULT_ADDR` is set and there is no valid token |
 
 The Claude Code extension is added even with `claude: false`: Feature customizations
 cannot depend on options.
