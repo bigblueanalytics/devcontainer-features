@@ -250,13 +250,15 @@ if [ -n "$VAULT_LOGIN" ]; then
 # there is no valid token. Once per container start, so cancelling it is not repeated in
 # every new terminal; PID 1's start time changes on every start. Needs a terminal on both
 # ends, which keeps it out of VS Code's environment probe and of non-interactive shells.
+# -no-print keeps the token off the screen, where a pasted log or a shared screen would
+# carry it.
 if [ -t 0 ] && [ -t 1 ] && [ -n "\${VAULT_ADDR:-}" ] && command -v vault > /dev/null; then
     _dx_vault_marker="/tmp/.dx-vault-login-\$(id -u)-\$(cut -d' ' -f22 /proc/1/stat 2>/dev/null)"
     if [ ! -e "\$_dx_vault_marker" ]; then
         : > "\$_dx_vault_marker"
         if ! vault token lookup > /dev/null 2>&1; then
             echo "dx: no valid Vault token, logging in to \$VAULT_ADDR (Ctrl-C to skip)"
-            vault login -method=${VAULT_LOGIN}
+            vault login -no-print -method=${VAULT_LOGIN} && echo "dx: logged in to Vault"
         fi
     fi
     unset _dx_vault_marker
