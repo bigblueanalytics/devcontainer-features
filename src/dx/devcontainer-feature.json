@@ -1,6 +1,6 @@
 {
     "id": "dx",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "name": "BBA developer experience",
     "description": "The shell and CLI tooling every BBA devcontainer starts from: zsh with oh-my-zsh, the shell utilities, aws, gh, vault, kubectl, Claude Code and 1Password commit signing.",
     "documentationURL": "https://github.com/bigblueanalytics/devcontainer-features/tree/main/src/dx",
